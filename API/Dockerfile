@@ -1,8 +1,10 @@
-FROM ubuntu:20.04
-RUN apt-get update && apt-get install -y python3.7 python3.7-dev
-RUN apt-get -y install python3-pip
-WORKDIR /app
-COPY requirements.txt .
+FROM python:3.8-slim-buster
+WORKDIR /usr/src/app
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
+#Server will reload itself on file changes if in dev mode
+ENV FLASK_ENV=development 
+COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 COPY app/* ./
-CMD ["python3", "dev.py"]
+CMD ["flask", "run"]

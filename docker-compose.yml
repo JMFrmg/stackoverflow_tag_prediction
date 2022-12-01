@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  tags_api:
+    container_name: tags_api
+    build: ./API
+    ports:
+      - "8001:5001"
+    volumes:
+      - ./API/app:/app/
+

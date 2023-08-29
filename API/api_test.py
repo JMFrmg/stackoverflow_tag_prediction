@@ -16,6 +16,6 @@ body4 = 'I was wondering how do arrays work in c. I end up with an hypothesis an
 
 headers={"Content-Type": "application/json"}
 data = {"title": title4, "body": body4}
-resp = requests.post("http://localhost:8001/predict_tags", data=json.dumps(data), headers=headers)
+resp = requests.post("http://localhost:8006/api/v1/predict", data=json.dumps(data), headers=headers)
 print(resp)
 pprint(resp.json())

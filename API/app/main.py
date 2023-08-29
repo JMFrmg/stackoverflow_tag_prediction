@@ -18,13 +18,13 @@ async def startup_event():
     Initialize FastAPI and add variables
     """
     # Load model and preprocess tools
-    with open("logistic_classifier.pickle", "rb") as f:
+    with open("/code/app/logistic_classifier.pickle", "rb") as f:
         classifier = pickle.load(f)
-    with open("binarizer.pickle", "rb") as f:
+    with open("/code/app/binarizer.pickle", "rb") as f:
         binarizer = pickle.load(f)
-    with open("tfidf.pickle", "rb") as f:
+    with open("/code/app/tfidf.pickle", "rb") as f:
         vectorizer = pickle.load(f)
-    with open("token2id.pickle", "rb") as f:
+    with open("/code/app/token2id.pickle", "rb") as f:
         tokens_set = pickle.load(f)
 
 

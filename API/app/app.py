@@ -2,27 +2,66 @@ import logging
 import pickle
 import json
 
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, File
+from pydantic import BaseModel
+
 import numpy as np
 import pandas as pd
 import sklearn
 
-logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
 
-with open("logistic_classifier.pickle", "rb") as f:
-    classifier = pickle.load(f)
-with open("binarizer.pickle", "rb") as f:
-    binarizer = pickle.load(f)
-with open("tfidf.pickle", "rb") as f:
-    vectorizer = pickle.load(f)
-with open("token2id.pickle", "rb") as f:
-    tokens_set = pickle.load(f)
+app = FastAPI()
 
-app = Flask(__name__)
+@app.on_event("startup")
+async def startup_event():
+    """
+    Initialize FastAPI and add variables
+    """
+    # Load model and preprocess tools
+    with open("logistic_classifier.pickle", "rb") as f:
+        classifier = pickle.load(f)
+    with open("binarizer.pickle", "rb") as f:
+        binarizer = pickle.load(f)
+    with open("tfidf.pickle", "rb") as f:
+        vectorizer = pickle.load(f)
+    with open("token2id.pickle", "rb") as f:
+        tokens_set = pickle.load(f)
 
+
+    # add model and preprocess tools too app state
+    app.package = {
+        "classifier": classifier,
+        "binarizer": binarizer,
+        "vectorizer": vectorizer,
+        "tokens_set": tokens_set
+    }
+
+
+class Question(BaseModel):
+    title: str
+    body: str | None = None
+
+
+@app.post("/api/v1/predict")
+def do_predict(question : Question):
+    text = question.title + " " + question.body if  question.body else question.title
+    text = text.strip().lower()
+    doc = [word for word in text.split(" ") if word.isalnum()]
+    tokens = [token for token in doc if token in app.package["tokens_set"]]
+    doc_vectorized = app.package["vectorizer"].transform(pd.Series([" ".join(tokens)]))
+    y_pred_proba = app.package["classifier"].predict_proba(doc_vectorized)
+    y_best_preds = []
+    for pred in y_pred_proba:
+        best_preds_indexes = np.argsort(pred)[-3:]
+        results = np.zeros((pred.shape[0],))
+        results[best_preds_indexes] = 1
+        y_best_preds.append(results)
+    y_best_preds = np.array(y_best_preds)
+    tags = app.package["binarizer"].inverse_transform(y_best_preds)[0]
+
+    return {"text": text, "tags": tags}
+
+"""
 @app.route('/')
 def home():
     return 'Flask with docker!'
@@ -60,3 +99,4 @@ if __name__ == '__main__':
      logger.info(type(classifier))
 
      app.run(port=8080)
+"""

@@ -6,8 +6,8 @@ COPY ./requirements.txt /code/requirements.txt
  
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-#COPY ./start.sh /start.sh
-#RUN chmod +x /start.sh
+COPY ./start.sh /start.sh
+RUN chmod +x /start.sh
 
 COPY ./app /code/app
 #COPY ./model_files /code/app/model_files
